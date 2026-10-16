@@ -8,17 +8,27 @@ app = Flask(__name__)
 CORS(app)
 swagger = Swagger(app)
 
+# Configuración centralizada de la base de datos
+DB_HOST = "localhost"
+DB_USER = "root"
+DB_PASS = "NuevaClave_2026!"  # Tu contraseña de MySQL actualizada
+DB_NAME = "gestor_contrasena"
 
-def conectar(vhost, vuser, vpass, vdb):
+
+def conectar():
     return pymysql.connect(
-        host=vhost, user=vuser, password=vpass, database=vdb, charset="utf8mb4"
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME,
+        charset="utf8mb4",
     )
 
 
 @app.route("/", methods=["GET"])
 def consulta_general():
     try:
-        conn = conectar("localhost", "root", "2008", "gestor_contrasena")
+        conn = conectar()
         cur = conn.cursor()
         cur.execute("SELECT * FROM baul")
         datos = cur.fetchall()
@@ -36,14 +46,14 @@ def consulta_general():
         conn.close()
         return jsonify({"baul": data, "mensaje": "Baúl de contraseñas"})
     except Exception as ex:
-        print(ex)
-        return jsonify({"mensaje": "Error"}), 500
+        print("Error en consulta_general:", ex)
+        return jsonify({"mensaje": "Error de conexión a la base de datos"}), 500
 
 
 @app.route("/consulta_individual/<codigo>", methods=["GET"])
 def consulta_individual(codigo):
     try:
-        conn = conectar("localhost", "root", "2008", "gestor_contrasena")
+        conn = conectar()
         cur = conn.cursor()
         cur.execute("SELECT * FROM baul WHERE id_baul = %s", (codigo,))
         datos = cur.fetchone()
@@ -57,16 +67,15 @@ def consulta_individual(codigo):
                 "clave": datos[3],
             }
             return jsonify({"baul": dato, "mensaje": "Registro encontrado"})
-        return jsonify({"mensaje": "Registro no encontrado"}), 44
+        return jsonify({"mensaje": "Registro no encontrado"}), 404
     except Exception as ex:
-        print(ex)
+        print("Error en consulta_individual:", ex)
         return jsonify({"mensaje": "Error"}), 500
 
 
 @app.route("/registro/", methods=["POST"])
 def registro():
     try:
-        # Detecta si el payload viene en JSON (Postman / JS fetch) o en Formulario HTML
         if request.is_json:
             data = request.get_json() or {}
         else:
@@ -83,7 +92,7 @@ def registro():
             "utf-8"
         )
 
-        conn = conectar("localhost", "root", "2008", "gestor_contrasena")
+        conn = conectar()
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO baul (plataforma, usuario, clave) VALUES (%s, %s, %s)",
@@ -94,14 +103,14 @@ def registro():
         conn.close()
         return jsonify({"mensaje": "Registro agregado"})
     except Exception as ex:
-        print(ex)
+        print("Error en registro:", ex)
         return jsonify({"mensaje": "Error"}), 500
 
 
 @app.route("/eliminar/<codigo>", methods=["DELETE"])
 def eliminar(codigo):
     try:
-        conn = conectar("localhost", "root", "2008", "gestor_contrasena")
+        conn = conectar()
         cur = conn.cursor()
         cur.execute("DELETE FROM baul WHERE id_baul = %s", (codigo,))
         conn.commit()
@@ -109,7 +118,7 @@ def eliminar(codigo):
         conn.close()
         return jsonify({"mensaje": "Eliminado"})
     except Exception as ex:
-        print(ex)
+        print("Error en eliminar:", ex)
         return jsonify({"mensaje": "Error"}), 500
 
 
@@ -132,7 +141,7 @@ def actualizar(codigo):
             "utf-8"
         )
 
-        conn = conectar("localhost", "root", "2008", "gestor_contrasena")
+        conn = conectar()
         cur = conn.cursor()
         cur.execute(
             "UPDATE baul SET plataforma = %s, usuario = %s, clave = %s WHERE id_baul = %s",
@@ -143,7 +152,7 @@ def actualizar(codigo):
         conn.close()
         return jsonify({"mensaje": "Registro actualizado"})
     except Exception as ex:
-        print(ex)
+        print("Error en actualizar:", ex)
         return jsonify({"mensaje": "Error"}), 500
 
 

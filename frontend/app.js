@@ -1,7 +1,7 @@
 // Declaración global de la URL base del backend Flask
 const BASE_URL = "http://127.0.0.1:5000";
 
-// Función para visualizar datos en la tabla
+// Función para visualizar datos en la tabla (index.html)
 function visualizar(data) {
     let tabla = "";
     if (data.baul && Array.isArray(data.baul)) {
@@ -25,7 +25,10 @@ function visualizar(data) {
             </tr>`;
         });
     }
-    document.getElementById('data').innerHTML = tabla;
+    const dataContainer = document.getElementById('data');
+    if (dataContainer) {
+        dataContainer.innerHTML = tabla;
+    }
 }
 
 // Consulta general
@@ -63,6 +66,11 @@ function registrar() {
     const plat = document.getElementById("plataforma").value;
     const usua = document.getElementById("usuario").value;
     const clav = document.getElementById("clave").value;
+
+    if (!plat || !usua || !clav) {
+        swal("Atención", "Por favor llena todos los campos", "warning");
+        return;
+    }
 
     const data = {
         plataforma: plat,
@@ -114,6 +122,11 @@ function modificar(id) {
     const plat = document.getElementById("plataforma").value;
     const usua = document.getElementById("usuario").value;
     const clav = document.getElementById("clave").value;
+
+    if (!plat || !usua || !clav) {
+        swal("Atención", "Por favor llena todos los campos", "warning");
+        return;
+    }
 
     const data = {
         plataforma: plat,
